@@ -8,9 +8,9 @@ from lib import models
 
 
 p = argparse.ArgumentParser()
-p.add_argument('--input', '-i', default='images/dog.jpg')
+p.add_argument('--input', '-i', default='images/bird.png')
 p.add_argument('--gpu', '-g', type=int, default=-1)
-p.add_argument('--mask', '-m', action='store_false')
+p.add_argument('--mask', '-m', action='store_true')
 args = p.parse_args()
 
 
