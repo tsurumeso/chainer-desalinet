@@ -1,12 +1,12 @@
 import chainer
-from chainer import cuda
 import chainer.links as L
 import chainer.functions as F
 
 from lib.functions import mask_relu
+from lib.models import visualizer
 
 
-class Alex(chainer.Chain):
+class Alex(visualizer.Visualizer):
 
     def __init__(self):
         super(Alex, self).__init__()
@@ -19,6 +19,11 @@ class Alex(chainer.Chain):
             self.fc6 = L.Linear(None, 4096)
             self.fc7 = L.Linear(None, 4096)
             self.fc8 = L.Linear(None, 1000)
+
+        visualizer._retrieve(
+            'bvlc_alexnet.npz',
+            'http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel',
+            self)
 
         self.layers = [
             self.conv1,
@@ -40,17 +45,6 @@ class Alex(chainer.Chain):
         self.relus = []
         for i in range(len(self.layers)):
             self.relus.append(mask_relu.MaskReLU())
-
-    def __call__(self, x):
-        # Convolutional layers
-        hs, _ = self.feature_map_activations(x)
-        h = hs[-1]
-        # # Fully connected layers
-        # h = F.dropout(F.relu(self.fc6(h)))
-        # h = F.dropout(F.relu(self.fc7(h)))
-        # h = self.fc8(h)
-
-        return F.softmax(h)
 
     def feature_map_activations(self, x, layer_idx=None):
         if layer_idx is None:
@@ -98,35 +92,3 @@ class Alex(chainer.Chain):
                 h = h.reshape(h.shape[0], 256, 6, 6)
 
         return h
-
-    def check_add_inv_layers(self, nobias=True):
-        if len(self.inv_layers) != 0:
-            return
-
-        for layer in self.layers:
-            if isinstance(layer, L.Convolution2D):
-                out_channels, in_channels, kh, kw = layer.W.data.shape
-                if isinstance(layer.W.data, cuda.ndarray):
-                    initialW = cuda.cupy.asnumpy(layer.W.data)
-                else:
-                    initialW = layer.W.data
-                deconv = L.Deconvolution2D(
-                    out_channels, in_channels, (kh, kw), stride=layer.stride,
-                    pad=layer.pad, initialW=initialW, nobias=nobias)
-                if isinstance(layer.W.data, cuda.ndarray):
-                    deconv.to_gpu()
-                self.add_link('de{}'.format(layer.name), deconv)
-                self.inv_layers.append(deconv)
-            elif isinstance(layer, L.Linear):
-                out_channels, in_channels = layer.W.data.shape
-                if isinstance(layer.W.data, cuda.ndarray):
-                    initialW = cuda.cupy.asnumpy(layer.W.data.T)
-                else:
-                    initialW = layer.W.data.T
-                inv_fc = L.Linear(
-                    out_channels, in_channels, initialW=initialW,
-                    nobias=nobias)
-                if isinstance(layer.W.data, cuda.ndarray):
-                    inv_fc.to_gpu()
-                self.add_link('de{}'.format(layer.name), inv_fc)
-                self.inv_layers.append(inv_fc)

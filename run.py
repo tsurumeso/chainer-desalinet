@@ -16,7 +16,6 @@ args = p.parse_args()
 
 if __name__ == '__main__':
     model = models.Alex()
-    chainer.serializers.load_npz('alex.npy', model)
     if args.gpu >= 0:
         chainer.cuda.get_device_from_id(args.gpu).use()
         model.to_gpu()
