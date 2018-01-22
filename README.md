@@ -1,8 +1,9 @@
 # chainer-desalinet
 
 Chainer implementation of DeConvNet [1] and DeSaliNet [2].
+These are the technics that visualize feature maps of each layers of convolutional networks.
 
-## summery
+## Summary
 
 ||Input|conv5|fc8|
 |:-:|:-:|:-:|:-:|
@@ -29,8 +30,7 @@ python run.py --input images/bird.png --mask --gpu 0
 
 ## References
 
-- [1] Matthew D. Zeiler, Rob Fergus, "Visualizing and Understanding
-Convolutional Networks",
+- [1] Matthew D. Zeiler and Rob Fergus, "Visualizing and Understanding Convolutional Networks",
 https://cs.nyu.edu/~fergus/papers/zeilerECCV2014.pdf
-- [2] Aravindh Mahendran, "Andrea Vedaldi, Salient deconvolutional networks",
+- [2] Aravindh Mahendran and Andrea Vedaldi, "Salient deconvolutional networks",
 https://www.robots.ox.ac.uk/~vedaldi/assets/pubs/mahendran16salient.pdf
