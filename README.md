@@ -2,6 +2,7 @@
 
 Chainer implementation of DeConvNet [1] and DeSaliNet [2].
 These are the technics that visualize feature maps of each layers of convolutional networks.
+This code uses AlexNet and VGGNet16Layers ImageNet classification model.
 
 ## Summary
 
@@ -20,12 +21,14 @@ These are the technics that visualize feature maps of each layers of convolution
 
 ### DeConvNet
 ```
-python run.py --input images/bird.png --gpu 0
+python run.py --input images/bird.png --arch alex --gpu 0
+python run.py --input images/bird.png --arch vgg --gpu 0
 ```
 
 ### DeSaliNet
 ```
-python run.py --input images/bird.png --mask --gpu 0
+python run.py --input images/bird.png --arch alex --mask --gpu 0
+python run.py --input images/bird.png --arch vgg --mask --gpu 0
 ```
 
 ## References
