@@ -10,18 +10,23 @@ from lib import models
 p = argparse.ArgumentParser()
 p.add_argument('--input', '-i', default='images/bird.png')
 p.add_argument('--gpu', '-g', type=int, default=-1)
+p.add_argument('--arch', '-a', choices=['alex', 'vgg'], default='alex')
 p.add_argument('--mask', '-m', action='store_true')
 args = p.parse_args()
 
 
 if __name__ == '__main__':
-    model = models.Alex()
+    if args.arch == 'alex':
+        model = models.Alex()
+    elif args.arch == 'vgg':
+        model = models.VGG()
+
     if args.gpu >= 0:
         chainer.cuda.get_device_from_id(args.gpu).use()
         model.to_gpu()
 
     src = cv2.imread(args.input, 1)
-    src = cv2.resize(src, (227, 227))
+    src = cv2.resize(src, (model.size, model.size))
     h, w = src.shape[:2]
     src = src.transpose(2, 0, 1)[np.newaxis, :, :, :]
     src = src.astype(np.float32)

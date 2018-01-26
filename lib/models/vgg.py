@@ -6,32 +6,41 @@ from lib.functions import mask_relu
 from lib.models import visualizer
 
 
-class Alex(visualizer.Visualizer):
+class VGG(visualizer.Visualizer):
 
     def __init__(self):
-        super(Alex, self).__init__()
+        super(VGG, self).__init__()
         with self.init_scope():
-            self.conv1 = L.Convolution2D(None, 96, 11, stride=4)
-            self.conv2 = L.Convolution2D(None, 256, 5, pad=2)
-            self.conv3 = L.Convolution2D(None, 384, 3, pad=1)
-            self.conv4 = L.Convolution2D(None, 384, 3, pad=1)
-            self.conv5 = L.Convolution2D(None, 256, 3, pad=1)
+            self.conv1_1 = L.Convolution2D(3, 64, 3, stride=1, pad=1)
+            self.conv1_2 = L.Convolution2D(None, 64, 3, stride=1, pad=1)
+            self.conv2_1 = L.Convolution2D(None, 128, 3, stride=1, pad=1)
+            self.conv2_2 = L.Convolution2D(None, 128, 3, stride=1, pad=1)
+            self.conv3_1 = L.Convolution2D(None, 256, 3, stride=1, pad=1)
+            self.conv3_2 = L.Convolution2D(None, 256, 3, stride=1, pad=1)
+            self.conv3_3 = L.Convolution2D(None, 256, 3, stride=1, pad=1)
+            self.conv4_1 = L.Convolution2D(None, 512, 3, stride=1, pad=1)
+            self.conv4_2 = L.Convolution2D(None, 512, 3, stride=1, pad=1)
+            self.conv4_3 = L.Convolution2D(None, 512, 3, stride=1, pad=1)
+            self.conv5_1 = L.Convolution2D(None, 512, 3, stride=1, pad=1)
+            self.conv5_2 = L.Convolution2D(None, 512, 3, stride=1, pad=1)
+            self.conv5_3 = L.Convolution2D(None, 512, 3, stride=1, pad=1)
             self.fc6 = L.Linear(None, 4096)
             self.fc7 = L.Linear(None, 4096)
             self.fc8 = L.Linear(None, 1000)
 
         visualizer._retrieve(
-            'bvlc_alexnet.npz',
-            'http://dl.caffe.berkeleyvision.org/bvlc_alexnet.caffemodel',
+            'VGG_ILSVRC_16_layers.npz',
+            'http://www.robots.ox.ac.uk/%7Evgg/software/very_deep/'
+            'caffe/VGG_ILSVRC_16_layers.caffemodel',
             self)
 
-        self.size = 227
+        self.size = 224
         self.layers = [
-            [self.conv1],
-            [self.conv2],
-            [self.conv3],
-            [self.conv4],
-            [self.conv5],
+            [self.conv1_1, self.conv1_2],
+            [self.conv2_1, self.conv2_2],
+            [self.conv3_1, self.conv3_2, self.conv3_3],
+            [self.conv4_1, self.conv4_2, self.conv4_3],
+            [self.conv5_1, self.conv5_2, self.conv5_3],
             [self.fc6],
             [self.fc7],
             [self.fc8]
@@ -39,10 +48,10 @@ class Alex(visualizer.Visualizer):
         self.inv_layers = []
         self.mps = []
         for i in range(len(self.layers)):
-            if i == 2 or i == 3 or i >= 5:
+            if i >= 5:
                 self.mps.append(None)
             else:
-                self.mps.append(F.MaxPooling2D(3, 2))
+                self.mps.append(F.MaxPooling2D(2, 2))
         self.relus = []
         for layer_block in self.layers:
             relu_block = []
@@ -62,8 +71,6 @@ class Alex(visualizer.Visualizer):
                 break
             for layer, relu in zip(layer_block, relu_block):
                 h = relu.apply((layer(h),))[0]
-            if i == 0 or i == 1:
-                h = F.local_response_normalization(h)
             if mp is not None:
                 pre_pooling_sizes.append(h.data.shape[2:])
                 # Disable cuDNN, else pooling indices will not be stored
@@ -91,6 +98,6 @@ class Alex(visualizer.Visualizer):
                 else:
                     h = inv_layer(relu.apply((h,))[0])
             if i == 5:
-                h = h.reshape(h.shape[0], 256, 6, 6)
+                h = h.reshape(h.shape[0], 512, 7, 7)
 
         return h

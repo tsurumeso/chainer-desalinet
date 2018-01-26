@@ -25,33 +25,37 @@ class Visualizer(chainer.Chain):
         if len(self.inv_layers) != 0:
             return
 
-        for layer in self.layers:
-            if isinstance(layer, L.Convolution2D):
-                out_channels, in_channels, kh, kw = layer.W.data.shape
-                if isinstance(layer.W.data, cuda.ndarray):
-                    initialW = cuda.cupy.asnumpy(layer.W.data)
-                else:
-                    initialW = layer.W.data
-                deconv = L.Deconvolution2D(
-                    out_channels, in_channels, (kh, kw), stride=layer.stride,
-                    pad=layer.pad, initialW=initialW, nobias=nobias)
-                if isinstance(layer.W.data, cuda.ndarray):
-                    deconv.to_gpu()
-                self.add_link('de{}'.format(layer.name), deconv)
-                self.inv_layers.append(deconv)
-            elif isinstance(layer, L.Linear):
-                out_channels, in_channels = layer.W.data.shape
-                if isinstance(layer.W.data, cuda.ndarray):
-                    initialW = cuda.cupy.asnumpy(layer.W.data.T)
-                else:
-                    initialW = layer.W.data.T
-                inv_fc = L.Linear(
-                    out_channels, in_channels, initialW=initialW,
-                    nobias=nobias)
-                if isinstance(layer.W.data, cuda.ndarray):
-                    inv_fc.to_gpu()
-                self.add_link('inv_{}'.format(layer.name), inv_fc)
-                self.inv_layers.append(inv_fc)
+        for layer_block in self.layers:
+            inv_layer_block = []
+            for layer in layer_block:
+                if isinstance(layer, L.Convolution2D):
+                    out_channels, in_channels, kh, kw = layer.W.data.shape
+                    if isinstance(layer.W.data, cuda.ndarray):
+                        initialW = cuda.cupy.asnumpy(layer.W.data)
+                    else:
+                        initialW = layer.W.data
+                    deconv = L.Deconvolution2D(
+                        out_channels, in_channels, (kh, kw),
+                        stride=layer.stride, pad=layer.pad, initialW=initialW,
+                        nobias=nobias)
+                    if isinstance(layer.W.data, cuda.ndarray):
+                        deconv.to_gpu()
+                    self.add_link('de{}'.format(layer.name), deconv)
+                    inv_layer_block.append(deconv)
+                elif isinstance(layer, L.Linear):
+                    out_channels, in_channels = layer.W.data.shape
+                    if isinstance(layer.W.data, cuda.ndarray):
+                        initialW = cuda.cupy.asnumpy(layer.W.data.T)
+                    else:
+                        initialW = layer.W.data.T
+                    inv_fc = L.Linear(
+                        out_channels, in_channels, initialW=initialW,
+                        nobias=nobias)
+                    if isinstance(layer.W.data, cuda.ndarray):
+                        inv_fc.to_gpu()
+                    self.add_link('inv_{}'.format(layer.name), inv_fc)
+                    inv_layer_block.append(inv_fc)
+            self.inv_layers.append(inv_layer_block)
 
 
 def _convert_caffemodel_to_npz(path_caffemodel, path_npz):
