@@ -50,7 +50,6 @@ class Alex(visualizer.Visualizer):
         if layer_idx is None:
             layer_idx = len(self.layers)
 
-        hs = []
         pre_pooling_sizes = []
         h = x
         for i, (layer, relu, mp) in enumerate(
@@ -67,15 +66,12 @@ class Alex(visualizer.Visualizer):
                     h = mp.apply((h,))[0]
             else:
                 pre_pooling_sizes.append(None)
-            hs.append(h)
 
-        return hs, pre_pooling_sizes
+        return h, pre_pooling_sizes
 
     def activations(self, x, layer_idx, mask=True):
         self.check_add_inv_layers()
-        hs, unpooling_sizes = self.feature_map_activations(x, layer_idx)
-        hs = [h.data for h in hs]
-        h = hs[layer_idx - 1]
+        h, unpooling_sizes = self.feature_map_activations(x, layer_idx)
 
         for i in reversed(range(layer_idx)):
             if self.mps[i] is not None:

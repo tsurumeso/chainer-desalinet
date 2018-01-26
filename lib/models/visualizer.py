@@ -14,8 +14,7 @@ class Visualizer(chainer.Chain):
         super(Visualizer, self).__init__()
 
     def __call__(self, x):
-        hs, _ = self.feature_map_activations(x)
-        h = hs[-1]
+        h, _ = self.feature_map_activations(x)
 
         return F.softmax(h)
 
