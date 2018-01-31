@@ -27,9 +27,10 @@ if __name__ == '__main__':
 
     src = cv2.imread(args.input, 1)
     src = cv2.resize(src, (model.size, model.size))
+    src = src.astype(np.float32)
+    src -= np.array([103.939, 116.779, 123.68])
     h, w = src.shape[:2]
     src = src.transpose(2, 0, 1)[np.newaxis, :, :, :]
-    src = src.astype(np.float32)
     src = model.xp.array(src)
 
     for idx in range(1, 9):
