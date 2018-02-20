@@ -11,7 +11,7 @@ class Alex(visualizer.Visualizer):
     def __init__(self):
         super(Alex, self).__init__()
         with self.init_scope():
-            self.conv1 = L.Convolution2D(None, 96, 11, stride=4)
+            self.conv1 = L.Convolution2D(3, 96, 11, stride=4)
             self.conv2 = L.Convolution2D(None, 256, 5, pad=2)
             self.conv3 = L.Convolution2D(None, 384, 3, pad=1)
             self.conv4 = L.Convolution2D(None, 384, 3, pad=1)
