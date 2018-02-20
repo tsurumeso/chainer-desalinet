@@ -2,7 +2,7 @@
 
 Chainer implementation of DeConvNet [1] and DeSaliNet [2].
 These are the technics that visualize feature maps of each layers of convolutional networks.
-This code can select AlexNet or VGGNet ImageNet classification model to visualize feature maps.
+You can choose VGGNet or AlexNet as the model to visualize the feature maps.
 
 ## Summary
 
