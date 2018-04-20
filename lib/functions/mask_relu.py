@@ -17,13 +17,13 @@ class MaskReLU(function_node.FunctionNode):
     def forward_cpu(self, x):
         self.retain_inputs(())
         self.retain_outputs((0,))
-        self.mask = x[0] > 0
+        self.positive_mask = x[0] > 0
         return utils.force_array(numpy.maximum(x[0], 0, dtype=x[0].dtype)),
 
     def forward_gpu(self, x):
         self.retain_inputs(())
         self.retain_outputs((0,))
-        self.mask = x[0] > 0
+        self.positive_mask = x[0] > 0
         y = cuda.cupy.maximum(x[0], 0)
         return y,
 
@@ -38,8 +38,3 @@ class MaskReLU(function_node.FunctionNode):
             'gx = y > 0 ? gy : (T)0',
             'relu_bwd')(y, gy[0])
         return gx,
-
-
-def mask_relu(x):
-    y, = MaskReLU().apply((x,))
-    return y
