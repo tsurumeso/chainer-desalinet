@@ -88,3 +88,15 @@ class ReLU(mask_relu.MaskReLU, TraceableNode):
             return self.apply((x,))[0] * positive_mask
         else:
             return self.apply((x,))[0]
+
+
+class LocalResponseNormalization(F.LocalResponseNormalization, TraceableNode):
+
+    def __init__(self, *args, **kwargs):
+        super(LocalResponseNormalization, self).__init__(*args, **kwargs)
+
+    def __call__(self, x):
+        return super(LocalResponseNormalization, self).__call__(x)
+
+    def trace(self, x):
+        return x
