@@ -36,7 +36,7 @@ if __name__ == '__main__':
     src = model.xp.array(src)
 
     for layer in layers:
-        acts = model.activations(src, layer, mask=args.mask)
+        acts = model.trace(src, layer, mask=args.mask)
         dst = chainer.cuda.to_cpu(acts[0].data)
         dst = dst.transpose(1, 2, 0)
         dst -= dst.min()

@@ -1,13 +1,13 @@
 import collections
 
-import chainer
 from chainer import functions as F
 
 from lib import utils
 from lib import traceable_nodes as T
+from lib import traceable_chain
 
 
-class VGG(chainer.Chain):
+class VGG(traceable_chain.TraceableChain):
 
     def __init__(self):
         super(VGG, self).__init__()
@@ -60,29 +60,3 @@ class VGG(chainer.Chain):
             ('fc8', [self.fc8]),
             ('prob', [F.softmax]),
         ])
-
-    def __call__(self, x, layer):
-        h = x
-        self.inv_functions = collections.OrderedDict()
-        for key, funcs in self.functions.items():
-            inv = []
-            for func in funcs:
-                inv.append(func)
-                h = func(h)
-            self.inv_functions[key] = inv
-            if key == layer:
-                break
-        return h
-
-    def activations(self, x, layer, mask=True):
-        h = self(x, layer)
-        for key, funcs in reversed(self.inv_functions.items()):
-            for func in reversed(funcs):
-                if isinstance(func, T.TraceableNode):
-                    if isinstance(func, T.ReLU):
-                        h = func.trace(h, mask)
-                    else:
-                        h = func.trace(h)
-                else:
-                    h = func(h)
-        return h
