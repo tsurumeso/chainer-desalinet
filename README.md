@@ -14,7 +14,7 @@ Currently, this implementation supports VGGNet and AlexNet.
 ## Requirements
 
 - Chainer
-- Cupy (for GPU support)
+- CuPy (for GPU support)
 - OpenCV
 
 ## Usage
