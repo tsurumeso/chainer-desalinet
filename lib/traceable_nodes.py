@@ -1,7 +1,9 @@
 import chainer
-import chainer.links as L
 import chainer.functions as F
-from chainer.backends import cuda
+from chainer.functions.normalization import local_response_normalization
+from chainer.functions.pooling import max_pooling_2d
+import chainer.links as L
+
 
 from lib.functions import mask_relu
 
@@ -26,12 +28,12 @@ class Convolution2D(L.Convolution2D, TraceableNode):
     def trace(self, x):
         if self.inv is None:
             out_channels, in_channels, kh, kw = self.W.data.shape
-            initialW = cuda.to_cpu(self.W.data)
+            initialW = chainer.backends.cuda.to_cpu(self.W.data)
             self.inv = L.Deconvolution2D(
                 out_channels, in_channels, (kh, kw),
                 stride=self.stride, pad=self.pad, initialW=initialW,
                 nobias=True, outsize=self.pre_conv_size)
-            if isinstance(self.W.data, cuda.ndarray):
+            if isinstance(self.W.data, chainer.backends.cuda.ndarray):
                 self.inv.to_gpu()
         return self.inv(x)
 
@@ -50,15 +52,15 @@ class Linear(L.Linear, TraceableNode):
     def trace(self, x):
         if self.inv is None:
             out_channels, in_channels = self.W.data.shape
-            initialW = cuda.to_cpu(self.W.data.T)
+            initialW = chainer.backends.cuda.to_cpu(self.W.data.T)
             self.inv = L.Linear(
                 out_channels, in_channels, initialW=initialW, nobias=True)
-            if isinstance(self.W.data, cuda.ndarray):
+            if isinstance(self.W.data, chainer.backends.cuda.ndarray):
                 self.inv.to_gpu()
         return F.reshape(self.inv(x), self.pre_linear_size)
 
 
-class MaxPooling2D(F.MaxPooling2D, TraceableNode):
+class MaxPooling2D(max_pooling_2d.MaxPooling2D, TraceableNode):
 
     def __init__(self, *args, **kwargs):
         super(MaxPooling2D, self).__init__(*args, **kwargs)
@@ -90,13 +92,15 @@ class ReLU(mask_relu.MaskReLU, TraceableNode):
             return self.apply((x,))[0]
 
 
-class LocalResponseNormalization(F.LocalResponseNormalization, TraceableNode):
+class LocalResponseNormalization(
+        local_response_normalization.LocalResponseNormalization,
+        TraceableNode):
 
     def __init__(self, *args, **kwargs):
         super(LocalResponseNormalization, self).__init__(*args, **kwargs)
 
     def __call__(self, x):
-        return super(LocalResponseNormalization, self).__call__(x)
+        return super(LocalResponseNormalization, self).apply((x,))[0]
 
     def trace(self, x):
         return x

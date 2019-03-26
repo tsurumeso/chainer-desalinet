@@ -2,9 +2,9 @@ import collections
 
 from chainer import functions as F
 
-from lib import utils
-from lib import traceable_nodes as T
 from lib import traceable_chain
+from lib import traceable_nodes as T
+from lib import utils
 
 
 class VGG(traceable_chain.TraceableChain):
